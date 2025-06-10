@@ -6,9 +6,9 @@
   <title>Bug Bash!</title>
   <style>
     body {
-      font-family: 'Courier New', monospace;
-      background-color: #111;
-      color: #90ee90;
+      font-family: 'Fira Code', monospace;
+      background-color: #1B263B;
+      color: #a9d6e5;
       text-align: center;
       margin: 0;
       padding: 20px;
@@ -101,33 +101,59 @@
       return holes[Math.floor(Math.random() * holes.length)];
     }
 
-    function showBug() {
+    function showBugOrBomb() {
       if (!gameActive) return;
       const hole = randomHole();
-      if (hole.classList.contains('bug')) return;
+      if (hole.classList.contains('bug') || hole.classList.contains('bomb')) return;
 
-      hole.textContent = '🐛';
-      hole.classList.add('bug');
+      // Randomly decide: 80% bug, 20% bomb
+      const isBomb = Math.random() < 0.2;
 
-      const hideTimer = setTimeout(() => {
-        if (hole.classList.contains('bug')) {
-          hole.textContent = '';
+      if (isBomb) {
+        hole.textContent = '💣';
+        hole.classList.add('bomb');
+        const hideTimer = setTimeout(() => {
+          if (hole.classList.contains('bomb')) {
+            hole.textContent = '';
+            hole.classList.remove('bomb');
+          }
+        }, 1000 + Math.random() * 1000);
+
+        hole.onclick = () => {
+          if (!hole.classList.contains('bomb') || !gameActive) return;
+          score -= 15;
+          scoreEl.textContent = score;
+          hole.textContent = '💥';
+          hole.classList.remove('bomb');
+          hole.classList.add('squashed');
+          setTimeout(() => {
+            hole.textContent = '';
+            hole.classList.remove('squashed');
+          }, 500);
+        };
+      } else {
+        hole.textContent = '🐛';
+        hole.classList.add('bug');
+        const hideTimer = setTimeout(() => {
+          if (hole.classList.contains('bug')) {
+            hole.textContent = '';
+            hole.classList.remove('bug');
+          }
+        }, 1000 + Math.random() * 1000);
+
+        hole.onclick = () => {
+          if (!hole.classList.contains('bug') || !gameActive) return;
+          score += 10;
+          scoreEl.textContent = score;
+          hole.textContent = '💥';
           hole.classList.remove('bug');
-        }
-      }, 1000 + Math.random() * 1000);
-
-      hole.onclick = () => {
-        if (!hole.classList.contains('bug') || !gameActive) return;
-        score += 10;
-        scoreEl.textContent = score;
-        hole.textContent = '💥';
-        hole.classList.remove('bug');
-        hole.classList.add('squashed');
-        setTimeout(() => {
-          hole.textContent = '';
-          hole.classList.remove('squashed');
-        }, 500);
-      };
+          hole.classList.add('squashed');
+          setTimeout(() => {
+            hole.textContent = '';
+            hole.classList.remove('squashed');
+          }, 500);
+        };
+      }
     }
 
     function startGame() {
@@ -149,7 +175,7 @@
         }
       }, 1000);
 
-      bugInterval = setInterval(showBug, 600);
+      bugInterval = setInterval(showBugOrBomb, 300);
     }
 
     startGame();
